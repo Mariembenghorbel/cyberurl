@@ -1,0 +1,169 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    :root {
+        --deep-navy: #0a192f;
+        --cyber-red: #e74c3c;
+        --steel-blue: #2c3e50;
+        --cyber-green: #2ecc71;
+        --text-light: #e6f1ff;
+    }
+
+    body {
+        background-color: #f4f7f6; /* Fond clair pour le contenu ou garde le dark du hub */
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .scanner-container { max-width: 1000px; margin: 50px auto; }
+
+    /* Header Style Cyber */
+    .card-cyber-header {
+        background: var(--deep-navy);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        border-bottom: 3px solid var(--cyber-red);
+        padding: 30px;
+    }
+
+    .btn-cyber {
+        background: var(--cyber-red);
+        border: none;
+        color: white;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .btn-cyber:hover {
+        background: #c0392b;
+        box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+    }
+
+    /* Résultats */
+    .result-card {
+        background: white;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 30px !important;
+    }
+
+    .list-group-item {
+        border-left: 4px solid transparent;
+        transition: 0.2s;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--cyber-red);
+    }
+
+    .advice-section {
+        background: var(--deep-navy);
+        color: var(--text-light);
+        border-radius: 10px;
+    }
+
+    .badge-domain {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--cyber-red);
+        border: 1px solid var(--cyber-red);
+        font-family: 'Courier New', monospace;
+    }
+</style>
+
+<div class="container scanner-container">
+    <div class="card result-card mb-5">
+        <div class="card-cyber-header text-center">
+            <h2><i class="fas fa-link"></i> Cyber<span>Link</span> Analyzer</h2>
+            <p class="mb-0 opacity-75">Analyse de menaces, Phishing & Réputation</p>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-globe text-muted"></i></span>
+                        <input type="url" name="url" class="form-control form-control-lg border-start-0" placeholder="https://example.com/login" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-cyber btn-lg w-100" type="submit">
+                        <i class="fas fa-search-radiation me-2"></i>Analyser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if result %}
+    <div class="card result-card">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+            <span>Cible : <span class="badge badge-domain p-2">{{ result.domain }}</span></span>
+            <span class="badge bg-outline-light border">{{ result.cert }}</span>
+        </div>
+        
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-shield-alt me-2"></i>Niveau de menace global</h5>
+            
+            <div class="progress mb-4">
+                {% if result.score <= 3 %}
+                    <div class="progress-bar bg-success fw-bold" style="width: 25%">SAIN (Score: {{result.score}})</div>
+                {% elif result.score <= 7 %}
+                    <div class="progress-bar bg-warning text-dark fw-bold" style="width: 60%">SUSPECT (Score: {{result.score}})</div>
+                {% else %}
+                    <div class="progress-bar bg-danger fw-bold" style="width: 100%">CRITIQUE (Score: {{result.score}})</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-navy fw-bold text-uppercase small mb-3">Analyse détaillée :</h6>
+                    <ul class="list-group list-group-flush">
+                        {% for flag in result.flags %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle text-danger me-3"></i>
+                            <span>{{ flag }}</span>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if result.redirect %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-directions text-info me-3"></i>
+                            <span>Redirection : <code class="small">{{ result.redirect }}</code></span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="advice-section p-4">
+                        <h6 class="text-danger fw-bold text-uppercase small mb-3"><i class="fas fa-user-shield me-2"></i>Directives de sécurité :</h6>
+                        {% for item in result.advice %}
+                            <div class="d-flex mb-2">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <p class="mb-0 small">{{ item|safe }}</p>
+                            </div>
+                        {% endfor %}
+                        
+                        <hr class="border-secondary">
+                        
+                        <div class="small opacity-75">
+                            <p class="mb-1"><i class="fas fa-microscope me-2"></i>Moteurs d'analyse actifs :</p>
+                            <span class="badge bg-secondary">SSL Check</span>
+                            <span class="badge bg-secondary">VirusTotal API</span>
+                            <span class="badge bg-secondary">Typosquatting Engine</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

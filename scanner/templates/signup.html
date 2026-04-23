@@ -1,0 +1,155 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    :root {
+        --deep-navy: #0a192f;
+        --cyber-red: #e74c3c;
+        --steel-blue: #2c3e50;
+        --text-light: #e6f1ff;
+    }
+
+    body {
+        background: radial-gradient(circle at center, #112240 0%, var(--deep-navy) 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .signup-card {
+        width: 100%;
+        max-width: 500px;
+        background: rgba(17, 34, 64, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(231, 76, 60, 0.2);
+        border-radius: 15px;
+        padding: 35px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .cyber-title {
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 800;
+        margin-bottom: 25px;
+        text-align: center;
+        border-bottom: 2px solid var(--cyber-red);
+        display: inline-block;
+        width: 100%;
+        padding-bottom: 10px;
+    }
+
+    .cyber-title span { color: var(--cyber-red); }
+
+    /* Styliser les labels et inputs générés par Django */
+    .form-group { margin-bottom: 15px; }
+    
+    label {
+        color: var(--cyber-red);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input {
+        width: 100%;
+        background: rgba(10, 25, 47, 0.7) !important;
+        border: 1px solid var(--steel-blue) !important;
+        color: white !important;
+        padding: 10px;
+        border-radius: 5px;
+        transition: 0.3s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--cyber-red) !important;
+        box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+    }
+
+    .helptext, .help-block {
+        color: rgba(230, 241, 255, 0.5);
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
+
+    .errorlist {
+        color: #ff8080;
+        list-style: none;
+        padding: 0;
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+    }
+
+    .btn-enroll {
+        background: transparent;
+        color: var(--cyber-red);
+        border: 2px solid var(--cyber-red);
+        width: 100%;
+        padding: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 20px;
+        transition: 0.3s;
+    }
+
+    .btn-enroll:hover {
+        background: var(--cyber-red);
+        color: white;
+        box-shadow: 0 0 15px var(--cyber-red);
+    }
+
+    .footer-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .footer-link a {
+        color: var(--text-light);
+        text-decoration: none;
+        font-size: 0.85rem;
+        opacity: 0.7;
+    }
+
+    .footer-link a:hover { opacity: 1; color: var(--cyber-red); }
+</style>
+
+<div class="signup-card">
+    <div class="cyber-title">
+        <i class="fas fa-user-plus"></i> New<span>Agent</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <div class="helptext">{{ field.help_text|safe }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="errorlist text-danger small mt-1">
+                        <i class="fas fa-times-circle"></i> {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-enroll">
+            Initialiser l'accès <i class="fas fa-key ms-2"></i>
+        </button>
+    </form>
+
+    <div class="footer-link">
+        <a href="{% url 'login' %}"><i class="fas fa-arrow-left me-1"></i> Agent déjà enregistré ? Login</a>
+    </div>
+</div>
