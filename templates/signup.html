@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Login — SecureCybe Portal{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-5 col-lg-4">
+        
+        <div class="card bg-dark border-secondary p-3 shadow-sm rounded">
+            
+            <div class="text-center mb-2">
+                <h3 class="text-info fw-bold mb-1 font-monospace">
+                    <i class="fas fa-user-plus me-2 text-info"></i>SecureCybe
+                </h3>
+                <span class="badge bg-black border border-secondary text-muted font-monospace px-2 py-1 small">
+                    <i class="fas fa-id-card text-info me-1"></i> Provisioning
+                </span>
+            </div>
+            
+            <hr class="border-secondary my-3">
+            
+            <form method="POST" class="text-start" autocomplete="off">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-2">
+                        <label class="form-label small text-muted font-monospace fw-semibold mb-1" style="font-size: 0.8rem;">
+                            <i class="fas fa-angle-right text-info me-1 small"></i> {{ field.label }}
+                        </label>
+                        
+                        <div class="cyber-input-field">
+                            {{ field }}
+                        </div>
+                        
+                        {% if field.help_text %}
+                            <div class="form-text text-muted font-monospace mt-1 django-raw-list border border-secondary p-1 rounded bg-black" 
+                                 style="font-size: 0.7rem; max-height: 65px; overflow-y: auto; opacity: 0.8;">
+                                {{ field.help_text|safe }}
+                            </div>
+                        {% endif %}
+                        
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="text-danger font-monospace mt-1 dynamic-error" style="font-size: 0.75rem;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <button type="submit" class="btn btn-info text-dark w-100 fw-bold py-2 mt-3">
+                    <i class="fas fa-terminal me-2"></i> Register Profile
+                </button>
+            </form>
+            
+            <div class="mt-3 pt-2 border-top border-secondary border-dashed text-center">
+                <a href="{% url 'login' %}" class="text-danger small text-decoration-none font-monospace" style="font-size: 0.8rem;">
+                    <i class="fas fa-arrow-left me-1"></i> Return to Login
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Form field injection
+        const formControls = document.querySelectorAll('.cyber-input-field input, .cyber-input-field select');
+        formControls.forEach(element => {
+            element.classList.add('form-control', 'bg-black', 'text-white', 'border-secondary', 'font-monospace', 'py-1', 'form-control-sm');
+        });
+
+        // Strip bullets and make rules ultra-compact
+        const helpLists = document.querySelectorAll('.django-raw-list');
+        helpLists.forEach(wrapper => {
+            const systemUl = wrapper.querySelector('ul');
+            if (systemUl) {
+                systemUl.style.listStyleType = 'none';
+                systemUl.style.paddingLeft = '0';
+                systemUl.style.margin = '0';
+                systemUl.querySelectorAll('li').forEach(item => {
+                    item.className = 'text-muted d-block my-0 font-monospace';
+                    item.style.fontSize = '0.7rem';
+                    item.innerHTML = `• ` + item.innerHTML;
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

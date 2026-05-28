@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Risk Scanner</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+
+<!-- NAV -->
+<nav class="border-b border-slate-800 bg-slate-900 px-6 py-4 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+
+        <div class="flex items-center space-x-3">
+            <div class="h-3 w-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span class="font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 tracking-wider">
+                SOC RISK ENGINE
+            </span>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'dashboard_soc' %}"
+               class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition">
+                <i class="fa-solid fa-chart-line mr-1"></i> SOC Dashboard
+            </a>
+
+            <span class="text-green-400 text-sm font-mono flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-green-500"></span> ACTIVE
+            </span>
+        </div>
+
+    </div>
+</nav>
+<main class="max-w-7xl mx-auto p-6">
+
+<!-- SCAN FORM -->
+<div class="bg-slate-900 border border-slate-800 p-6 rounded-xl mb-8 shadow-xl">
+
+    <form method="POST" class="flex flex-col sm:flex-row gap-4 items-center">
+        {% csrf_token %}
+
+        <!-- ASSET SELECT -->
+        <div class="relative flex-1 w-full">
+
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                <i class="fa-solid fa-network-wired"></i>
+            </div>
+
+            <select name="asset_id"
+                    required
+                    class="w-full p-3 pl-10 bg-slate-950 border border-slate-700 rounded font-mono text-white focus:outline-none focus:border-red-500 transition">
+
+                <option disabled selected>Choose Asset to Scan</option>
+
+                {% for asset in assets %}
+                <option value="{{ asset.id }}">
+                    {{ asset.name }} - {{ asset.ip_address }} ({{ asset.asset_type }})
+                </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- BUTTON -->
+        <button type="submit"
+                class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded font-mono font-bold shadow-lg flex items-center gap-2 text-white">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+            RUN NMAP SCAN
+        </button>
+
+    </form>
+
+</div>
+
+<!-- ERROR -->
+{% if error_message %}
+<div class="bg-red-950/40 border border-red-800 p-4 rounded-xl mb-6 text-red-400 font-mono text-sm flex gap-3">
+    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+    {{ error_message }}
+</div>
+{% endif %}
+
+{% if results %}
+
+<!-- ================= METRICS ================= -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+        <div class="text-xs text-slate-400 font-mono uppercase">Open Ports</div>
+        <div class="text-3xl font-bold font-mono">{{ results|length }}</div>
+    </div>
+
+    <div class="bg-red-950/20 border border-red-900 p-4 rounded-xl">
+        <div class="text-xs text-red-400 font-mono uppercase">Scan Status</div>
+        <div class="text-xl font-bold text-red-400">{{ scan_stats.status }}</div>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl col-span-2">
+        <div class="text-xs text-slate-400 font-mono uppercase">Timestamp</div>
+        <div class="text-sm font-mono text-slate-300">{{ scan_stats.time }}</div>
+    </div>
+
+</div>
+
+<!-- ================= HEADER ================= -->
+<div class="flex justify-between items-center mb-4">
+    <div class="font-mono text-slate-300">
+        <i class="fa-solid fa-bullseye text-red-500 mr-2"></i>
+        Target: <span class="text-white font-bold">{{ target_ip }}</span>
+    </div>
+</div>
+<a href="{% url 'export_scan_pdf' %}"
+       class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-xs font-mono font-bold flex items-center gap-2">
+
+        <i class="fa-solid fa-file-pdf"></i>
+        EXPORT
+    </a>
+<!-- ================= TABLE ================= -->
+<div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+
+    <table class="w-full text-sm font-mono">
+        <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+            <tr>
+                <th class="p-4">Port</th>
+                <th class="p-4">Service</th>
+                <th class="p-4">Exposure</th>
+                <th class="p-4 text-center">Risk Score</th>
+                <th class="p-4 text-right">Severity</th>
+            </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-800">
+        {% for r in results %}
+        <tr class="hover:bg-slate-800/40 transition">
+
+            <td class="p-4 text-red-400 font-bold">{{ r.port }}</td>
+
+            <td class="p-4 text-slate-300">
+                <span class="bg-slate-950 px-2 py-1 border border-slate-800 rounded">
+                    {{ r.service }}
+                </span>
+            </td>
+
+            <td class="p-4 text-slate-400 text-xs">
+                {{ r.banner }}
+            </td>
+
+            <td class="p-4 text-center font-bold" style="color: {{ r.severity_color }}">
+                {{ r.risk_score }}/10
+            </td>
+
+            <td class="p-4 text-right">
+                <span class="px-2 py-1 rounded text-xs font-bold text-white"
+                      style="background-color: {{ r.severity_color }}">
+                    {{ r.severity }}
+                </span>
+            </td>
+
+        </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+
+<!-- ================= REMEDIATION ================= -->
+<h3 class="text-lg font-bold font-mono mt-10 mb-4 text-slate-300">
+    <i class="fa-solid fa-shield-halved text-orange-500 mr-2"></i>
+    Remediation Engine
+</h3>
+
+<div class="space-y-4">
+
+{% for r in results %}
+<div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+
+    <div class="flex justify-between border-b border-slate-800 pb-3 mb-4">
+        <div class="font-mono text-sm text-slate-300">
+            <span class="text-red-400 font-bold">{{ r.port }}</span>
+            — {{ r.service }}
+        </div>
+
+        <div class="text-xs font-mono text-slate-400">
+            Risk: <span style="color: {{ r.severity_color }}">{{ r.risk_score }}</span>
+        </div>
+    </div>
+
+    <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs text-slate-300">
+        {{ r.banner }}
+    </div>
+
+    <div class="mt-4 text-xs text-emerald-400 font-mono uppercase mb-2">
+        Hardening Actions
+    </div>
+
+    <ul class="space-y-2">
+        {% for rec in r.recommendations %}
+        <li class="bg-emerald-950/10 border border-emerald-900/20 p-2 rounded text-xs text-slate-300 flex gap-2">
+            <i class="fa-solid fa-shield text-emerald-500 mt-0.5"></i>
+            {{ rec }}
+        </li>
+        {% endfor %}
+    </ul>
+
+</div>
+{% endfor %}
+
+</div>
+
+<!-- ================= ATTACK SCENARIOS (FIXED) ================= -->
+{% if scenarios %}
+
+<div class="mt-10 p-4 bg-slate-900 border border-red-900 rounded-xl">
+
+    <h3 class="text-red-400 font-bold mb-4 font-mono">
+        🚨 Possible Attack Paths
+    </h3>
+
+    {% for s in scenarios %}
+
+    <div class="mb-4 p-4 border border-slate-800 rounded bg-slate-950">
+
+        <h4 class="text-yellow-400 font-bold mb-2">
+            {{ s.title }}
+        </h4>
+
+        <p class="text-slate-300 text-sm mb-2">
+            <span class="text-slate-500">Attack Scenario:</span>
+            {{ s.attack }}
+        </p>
+
+        <span class="px-2 py-1 text-xs rounded font-bold
+            {% if s.risk == 'CRITICAL' %}bg-red-600
+            {% elif s.risk == 'HIGH' %}bg-orange-500
+            {% elif s.risk == 'MEDIUM' %}bg-yellow-500 text-black
+            {% else %}bg-green-600{% endif %}">
+            {{ s.risk }} RISK
+        </span>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endif %}
+
+{% elif target_ip and not error_message %}
+
+<div class="text-center py-16 text-slate-500 font-mono border border-dashed border-slate-800 rounded-xl">
+    <i class="fa-solid fa-shield text-3xl mb-3"></i>
+    <p>Scan completed - No exposed services detected</p>
+</div>
+
+{% endif %}
+</main>
+
+</body>
+</html>

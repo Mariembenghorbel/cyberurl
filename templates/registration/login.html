@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Login — SecureCybe Portal{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-5 col-lg-4">
+        
+        <div class="card bg-dark border-secondary p-4 shadow-sm">
+            <div class="card-body text-center p-2">
+                
+                <h2 class="text-info fw-bold mb-2 font-monospace">
+                    <i class="fas fa-shield-alt me-2 text-info"></i>SecureCybe
+                </h2>
+                <span class="badge bg-black border border-secondary text-muted font-monospace px-3 py-2 mb-3">
+                    <i class="fas fa-lock text-warning me-1"></i> IAM Auth Control
+                </span>
+                
+                <p class="text-muted small mb-0">Please authenticate to establish a secure station session.</p>
+                
+                <hr class="border-secondary my-4">
+                
+                <form method="POST" autocomplete="off">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3 text-start">
+                        <label class="form-label small text-muted">
+                            <i class="fas fa-user-shield me-1"></i> Operator Username
+                        </label>
+                        <input type="text" name="username" class="form-control bg-black text-white border-secondary font-monospace" 
+                               placeholder="e.g., op_mariem" required autofocus>
+                    </div>
+                    
+                    <div class="mb-4 text-start">
+                        <label class="form-label small text-muted">
+                            <i class="fas fa-key me-1"></i> Security Passphrase
+                        </label>
+                        <input type="password" name="password" class="form-control bg-black text-white border-secondary font-monospace" 
+                               placeholder="••••••••••••••••" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-info w-100 fw-bold py-2 text-dark">
+                        <i class="fas fa-sign-in-alt me-2"></i> Initialize Session
+                    </button>
+                </form>
+                
+                <div class="mt-4 pt-2 border-top border-secondary border-dashed">
+                    <a href="{% url 'signup' %}" class="text-warning small text-decoration-none font-monospace">
+                        <i class="fas fa-user-plus me-1"></i> Register New Operator Profile
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
